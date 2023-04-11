@@ -16,7 +16,7 @@ db.serialize(() => {
       } else {
         console.log(`Table sensorData does not exist creating new table`);
         db.run(
-          "CREATE TABLE sensorData (trenchID INTEGER, helmetID INTEGER, O2 TEXT, CO TEXT, H2S4 TEXT, recievedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+          "CREATE TABLE sensorData (trenchID INTEGER, helmetID INTEGER, O2 TEXT, CO TEXT, H2S4 TEXT, LPG TEXT, CH4 TEXT, recievedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
         );
       }
     }
@@ -28,14 +28,14 @@ const app = express();
 app.use(express.json());
 
 app.post("/", (req, res) => {
-  const { O2, CO, H2S4 } = req.body;
+  const { O2, CO, H2S4, LPG, CH4 } = req.body;
   const trenchID = parseInt(req.get("x-trench-id"));
   const helmetID = parseInt(req.get("x-helmet-id"));
   if (!trenchID || !helmetID) return res.status(400).send();
   db.serialize(() => {
     db.run(
-      "INSERT INTO sensorData(trenchID, helmetID, O2, CO, H2S4) VALUES(?, ?, ?, ?, ?)",
-      [trenchID, helmetID, O2, CO, H2S4],
+      "INSERT INTO sensorData(trenchID, helmetID, O2, CO, H2S4, LPG, CH4) VALUES(?, ?, ?, ?, ?, ?, ?)",
+      [trenchID, helmetID, O2, CO, H2S4, LPG, CH4],
       (err) => {
         if (err) return res.send(err);
         res.send("1 Row affected");
