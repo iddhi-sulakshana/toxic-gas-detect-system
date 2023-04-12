@@ -1,6 +1,7 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const mongoose = require("mongoose");
+const morgan = require("morgan");
 const os = require("os");
 
 const ipAddresses = [];
@@ -26,6 +27,10 @@ db.serialize(() => {
 getIpAddresses();
 const app = express();
 app.use(express.json());
+app.use(morgan("dev"));
+app.get("/init", (req, res) => {
+  res.send();
+});
 
 app.post("/", (req, res) => {
   const { O2, CO, H2S4, LPG, CH4 } = req.body;
