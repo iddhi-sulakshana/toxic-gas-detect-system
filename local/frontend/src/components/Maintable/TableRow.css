@@ -1,0 +1,18 @@
+tr {
+  vertical-align: middle;
+}
+tr#safe {
+  color: #fff;
+  background-color: #157347;
+  border-color: #146c43;
+}
+tr#caution {
+  color: #000;
+  background-color: #ffca2c;
+  border-color: #ffc720;
+}
+tr#danger {
+  color: #fff;
+  background-color: #bb2d3b;
+  border-color: #b02a37;
+}

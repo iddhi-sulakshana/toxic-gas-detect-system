@@ -3,8 +3,15 @@ const sqlite3 = require("sqlite3").verbose();
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const os = require("os");
+const cors = require("cors");
+const app = express();
+const server = require("http").Server(app);
+const io = require("socket.io")(server, {
+  cors: { origin: "*" },
+});
 
 const ipAddresses = [];
+// configure database
 const db = new sqlite3.Database("sensors.db");
 db.serialize(() => {
   db.get(
@@ -17,33 +24,70 @@ db.serialize(() => {
       } else {
         console.log(`Table sensorData does not exist creating new table`);
         db.run(
-          "CREATE TABLE sensorData (trenchID INTEGER, helmetID INTEGER, O2 TEXT, CO TEXT, H2S4 TEXT, LPG TEXT, CH4 TEXT, recievedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+          "CREATE TABLE sensorData (trenchID INTEGER, helmetID INTEGER, O2 TEXT, CO TEXT, H2S4 TEXT, LPG TEXT, CH4 TEXT, recievedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, condition TEXT DEFAULT 'safe')"
         );
       }
     }
   );
 });
+// end configure database
+let data = [];
+function retrieveData() {
+  db.serialize(() => {
+    db.all("SELECT * FROM sensorData", (err, rows) => {
+      if (!err) {
+        const latestData = rows.reduce((acc, curr) => {
+          const key = `${curr.trenchID}_${curr.helmetID}`;
+
+          if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
+            acc[key] = curr;
+          }
+
+          return acc;
+        }, {});
+        data = Object.values(latestData);
+      }
+    });
+  });
+}
+retrieveData();
 
 getIpAddresses();
-const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 app.get("/init", (req, res) => {
   res.send();
 });
+app.use(cors());
 
 app.post("/", (req, res) => {
   const { O2, CO, H2S4, LPG, CH4 } = req.body;
   const trenchID = parseInt(req.get("x-trench-id"));
   const helmetID = parseInt(req.get("x-helmet-id"));
+  const condition = req.get("x-condition");
   if (!trenchID || !helmetID) return res.status(400).send();
   db.serialize(() => {
     db.run(
-      "INSERT INTO sensorData(trenchID, helmetID, O2, CO, H2S4, LPG, CH4) VALUES(?, ?, ?, ?, ?, ?, ?)",
-      [trenchID, helmetID, O2, CO, H2S4, LPG, CH4],
+      "INSERT INTO sensorData(trenchID, helmetID, O2, CO, H2S4, LPG, CH4, condition) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+      [trenchID, helmetID, O2, CO, H2S4, LPG, CH4, condition],
       (err) => {
         if (err) return res.send(err);
-        res.send("1 Row affected");
+        db.all("SELECT * FROM sensorData", (err, rows) => {
+          if (!err) {
+            const latestData = rows.reduce((acc, curr) => {
+              const key = `${curr.trenchID}_${curr.helmetID}`;
+
+              if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
+                acc[key] = curr;
+              }
+
+              return acc;
+            }, {});
+            data = Object.values(latestData);
+            io.emit("updateData", data);
+            res.send("1 Row affected");
+          }
+        });
       }
     );
   });
@@ -53,8 +97,18 @@ app.post("/", (req, res) => {
 app.get("/", (req, res) => {
   db.serialize(() => {
     db.all("SELECT * FROM sensorData", (err, rows) => {
-      if (err) res.send(err);
-      else res.send(rows);
+      if (err) return res.send(err);
+      const latestData = rows.reduce((acc, curr) => {
+        const key = `${curr.trenchID}_${curr.helmetID}`;
+
+        if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
+          acc[key] = curr;
+        }
+
+        return acc;
+      }, {});
+
+      res.send(Object.values(latestData));
     });
   });
 });
@@ -92,9 +146,24 @@ app.get("/upload", (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+// web socket
+io.on("connection", (socket) => {
+  console.log("[ WebSocket ] : >>>>> New Connection <<<<<");
+
+  // send data to client client is listening to the updateData event
+  socket.emit("updateData", data);
+
+  socket.on("disconnect", () => {
+    console.log("[ WebSocket ] : >>>>> Connection Closed <<<<<");
+  });
+});
+
+app.listen(3001, () => {
   console.log("Server running on port following ports:");
-  console.log(...ipAddresses.map((ip) => `http://${ip}:3000`));
+  console.log(...ipAddresses.map((ip) => `http://${ip}:3001`));
+});
+server.listen(8080, () => {
+  console.log(...ipAddresses.map((ip) => `[ WebSocket ] http://${ip}:8080`));
 });
 
 function getIpAddresses() {
