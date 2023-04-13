@@ -1,28 +1,29 @@
 // pins
-#define MQ136 A0    // Pin to which the sensor is connected
-#define MQ9 A1
-#define LED 5
-#define SPEAKER 6
+#define MQ136 A0                                        // Mq 136 Sensor Analog Pin
+#define MQ9 A1                                          // Mq 9 Sensor Analog Pin
+#define LED 5                                           // LED Pin
+#define SPEAKER 6                                       // Speaker Pin
 
 // MQ136 Sensor
-#define MQ136_RLValue 1           // Resistance of the load resistor in Kohm
-#define MQ136_RO_CLEAN_AIR_FACTOR 9.8  // RO_CLEAR_AIR_FACTOR/(H2S ppm at clean air)
-#define MQ136_CALIBRATION_SAMPLE_TIMES 50 // Number of samples to take for calibration
-#define MQ136_CALIBRATION_SAMPLE_INTERVAL 500 // Interval in ms between calibration samples
-#define READ_SAMPLE_INTERVAL 50 // Interval in ms between sensor readings
-#define READ_SAMPLE_TIMES 5 // Number of sensor readings to average
-float MQ136Ro;
-// MQ9 Sensor
+#define MQ136_RLValue 1                                // Resistance of the load resistor in Kohm
+#define MQ136_RO_CLEAN_AIR_FACTOR 9.8                  // RO_CLEAR_AIR_FACTOR/(H2S4 ppm at clean air)
+#define MQ136_CALIBRATION_SAMPLE_TIMES 50              // Number of samples to take for calibration
+#define MQ136_CALIBRATION_SAMPLE_INTERVAL 500          // Interval in ms between calibration samples
+#define READ_SAMPLE_INTERVAL 50                        // Interval in ms between sensor readings
+#define READ_SAMPLE_TIMES 5                            // Number of sensor readings to average
+float MQ136Ro;                                         // resistance value for mq136 sensor
 
-float H2S_concentration = 0;   // Variable to store the concentration of H2S in ppm
-float CH4_concentration = 0;
-float LPG_concentration = 0;
-float CO_concentration = 0;
+// Gas Values
+float H2S4_concentration = 0;                          // concentration of H2S4 in ppm
+float CH4_concentration = 0;                           // concentration of CH4 in ppm
+float LPG_concentration = 0;                           // concentration of LPG in ppm
+float CO_concentration = 0;                            // concentration of CO in ppm
+float O2_percentage = 0;                               // concentration of O2 in percentage
 
 void setup() {
-  Serial.begin(9600);
-  MQ136Calibration(MQ136);
-  delay(100);
+  Serial.begin(9600);                                  // start serial monitor only for debug
+  MQ136Calibration(MQ136);                             // Callibrate MQ Sensor
+  delay(100);                                          
 }
 
 void loop() {
@@ -35,8 +36,8 @@ void loop() {
 }
 
 void hazardSitutationCheck(){
-  if(H2S_concentration > 10) {
-    Serial.println("!H2S Extreme Level!");
+  if(H2S4_concentration > 10) {
+    Serial.println("!H2S4 Extreme Level!");
   }
   if(CH4_concentration < 75){
     Serial.println("!CH4 Extreme Level!");
@@ -119,9 +120,9 @@ int MQ136Read(int mq_pin) {
   }
   ratio = ratio / READ_SAMPLE_TIMES;
 
-  H2S_concentration = pow(10, ((log10(ratio) - (-1.604)) / (-3.926)));
+  H2S4_concentration = pow(10, ((log10(ratio) - (-1.604)) / (-3.926)));
   
-  Serial.print("H2S Concentration: ");
-  Serial.print(H2S_concentration);
+  Serial.print("H2S4 Concentration: ");
+  Serial.print(H2S4_concentration);
   Serial.println(" ppm");
 }

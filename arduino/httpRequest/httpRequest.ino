@@ -35,7 +35,7 @@ void loop() {
   unsigned long currMillis = millis();
   if((currMillis - prevMillis) > interval){
     prevMillis = currMillis;
-    sendSensorData();
+    sendSensorData("safe");
   }
 }
 
@@ -66,10 +66,16 @@ void initRequest(){
   sendHttpRequest(httpRequest);
 }
 
-void sendSensorData(){
-  
+void sendSensorData(String condition){
+  // get sensor data
+  String O2_percentage = String(random(100)) + "%";
+  String H2S4_concentration = String(random(100)) + "PPM";
+  String CH4_concentration = String(random(100)) + "PPM";
+  String LPG_concentration = String(random(100)) + "PPM";
+  String CO_concentration = String(random(100)) + "PPM";
+
   // build response data
-  String responseData = "{\"O2\": \"20%\", \"CO\": \"100PPM\", \"H2S4\": \"0.2PPM\", \"LPG\": \"80PPM\", \"CH4\": \"10PPM\"}";
+  String responseData = "{\"O2\":\""+O2_percentage+"\",\"CO\":\""+CO_concentration+"\",\"H2S4\":\""+H2S4_concentration+"\",\"LPG\":\""+LPG_concentration+"\",\"CH4\":\""+CH4_concentration+"\"}";
   // Build the HTTP request
   String httpRequest = "POST / HTTP/1.1\r\n";
   httpRequest += "Host: " + String(SERVER) + ":" + String(PORT) + "\r\n";
@@ -115,10 +121,9 @@ void runATCommand(){
     
     while(Serial.available()) // read the command character by character
     {
-        // read one character
+      // read one character
       command+=(char)Serial.read();
     }
     espWiFi.println(command); // send the read character to the Esp module
   }
-
 }
