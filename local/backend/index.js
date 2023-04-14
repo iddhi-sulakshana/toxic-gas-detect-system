@@ -10,7 +10,22 @@ const io = require("socket.io")(server, {
   cors: { origin: "*" },
 });
 
+// mongodb schema
+const sensorDataSchema = new mongoose.Schema({
+  trenchID: Number,
+  helmetID: Number,
+  O2: String,
+  CO: String,
+  H2S4: String,
+  LPG: String,
+  CH4: String,
+  recievedAt: String,
+  condition: String,
+});
+const SensorData = mongoose.model("Mine1", sensorDataSchema);
+
 const ipAddresses = [];
+getIpAddresses();
 // configure database
 const db = new sqlite3.Database("sensors.db");
 db.serialize(() => {
@@ -31,6 +46,8 @@ db.serialize(() => {
   );
 });
 // end configure database
+
+// DATA to send to client
 let data = [];
 function retrieveData() {
   db.serialize(() => {
@@ -52,14 +69,16 @@ function retrieveData() {
 }
 retrieveData();
 
-getIpAddresses();
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(cors());
+
+// initial request to check connection
 app.get("/init", (req, res) => {
   res.send();
 });
-app.use(cors());
 
+// arduino send sensor data to this route then those data will store in database
 app.post("/", (req, res) => {
   const { O2, CO, H2S4, LPG, CH4 } = req.body;
   const trenchID = parseInt(req.get("x-trench-id"));
@@ -93,7 +112,7 @@ app.post("/", (req, res) => {
   });
 });
 
-// get all the data from sensorData table
+// get all the data from database
 app.get("/", (req, res) => {
   db.serialize(() => {
     db.all("SELECT * FROM sensorData", (err, rows) => {
@@ -115,35 +134,43 @@ app.get("/", (req, res) => {
 
 // upload all the data to cloud
 app.get("/upload", (req, res) => {
-  db.serialize(() => {
-    db.all("SELECT * FROM sensorData", (err, rows) => {
-      if (err) return res.send(err);
-      else {
-        mongoose
-          .connect("mongodb://127.0.0.1:27017/sensorData")
-          .then(() => {
-            const sensorDataSchema = new mongoose.Schema({
-              O2: String,
-              CO: String,
-              H2S4: String,
-              recievedAt: Date,
-            });
-            const SensorData = mongoose.model("SensorData", sensorDataSchema);
-            rows.forEach((row) => {
+  mongoose
+    .connect("mongodb://127.0.0.1:27017/sensorData")
+    .then(async () => {
+      let last = await SensorData.find()
+        .sort({ recievedAt: -1 })
+        .limit(1)
+        .select("recievedAt");
+      if (last.length === 0) last = [{ recievedAt: "0000-00-00 00:00:00" }];
+      db.serialize(() => {
+        db.all(
+          `SELECT * FROM sensorData WHERE recievedAt > "${last[0].recievedAt}"`,
+          async (err, rows) => {
+            if (err) return res.send(err);
+            for (const row of rows) {
               const sensorData = new SensorData({
+                trenchID: row.trenchID,
+                helmetID: row.helmetID,
                 O2: row.O2,
                 CO: row.CO,
                 H2S4: row.H2S4,
+                LPG: row.LPG,
+                CH4: row.CH4,
                 recievedAt: row.recievedAt,
+                condition: row.condition,
               });
-              sensorData.save();
-            });
+              await sensorData.save();
+            }
+            await mongoose.connection.close();
             res.send("Data uploaded to cloud");
-          })
-          .catch((err) => res.send(err));
-      }
+          }
+        );
+      });
+    })
+    .catch((err) => {
+      mongoose.connection.close();
+      res.status(500).send(err);
     });
-  });
 });
 
 // web socket
