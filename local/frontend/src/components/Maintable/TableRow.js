@@ -1,9 +1,8 @@
 import React from "react";
-import Button from "react-bootstrap/Button";
 import "./TableRow.css";
 
 export default function TableRow(props) {
-  const { value, handleClick, className } = props;
+  const { value, className } = props;
   return (
     <tr id={className}>
       <td>{value.trenchID}</td>
@@ -15,20 +14,6 @@ export default function TableRow(props) {
       <td>{value.CH4}</td>
       <td>{value.condition}</td>
       <td>{value.recievedAt}</td>
-      <td>
-        <Button
-          variant={
-            value.condition === "safe"
-              ? "success"
-              : value.condition === "caution"
-              ? "warning"
-              : "danger"
-          }
-          onClick={handleClick}
-        >
-          View
-        </Button>
-      </td>
     </tr>
   );
 }

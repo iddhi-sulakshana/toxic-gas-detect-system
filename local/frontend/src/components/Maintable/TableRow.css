@@ -10,9 +10,35 @@ tr#caution {
   color: #000;
   background-color: #ffca2c;
   border-color: #ffc720;
+  animation: cautionFade 1.5s ease-in-out infinite;
 }
 tr#danger {
   color: #fff;
   background-color: #bb2d3b;
   border-color: #b02a37;
+  animation: dangerFade 1s ease-in-out infinite;
+}
+
+@keyframes dangerFade {
+  0% {
+    background-color: #bb2d3b;
+  }
+  50% {
+    background-color: red;
+  }
+  100% {
+    background-color: #bb2d3b;
+  }
+}
+
+@keyframes cautionFade {
+  0% {
+    background-color: #ffca2c;
+  }
+  50% {
+    background-color: yellow;
+  }
+  100% {
+    background-color: #ffca2c;
+  }
 }

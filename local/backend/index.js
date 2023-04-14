@@ -53,7 +53,7 @@ function retrieveData() {
   db.serialize(() => {
     db.all("SELECT * FROM sensorData", (err, rows) => {
       if (!err) {
-        const latestData = rows.reduce((acc, curr) => {
+        let latestData = rows.reduce((acc, curr) => {
           const key = `${curr.trenchID}_${curr.helmetID}`;
 
           if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
@@ -62,7 +62,14 @@ function retrieveData() {
 
           return acc;
         }, {});
-        data = Object.values(latestData);
+        latestData = Object.values(latestData);
+        latestData.sort((a, b) => {
+          if (a.trenchID !== b.trenchID) {
+            return a.trenchID - b.trenchID;
+          }
+          return a.helmetID - b.helmetID;
+        });
+        data = latestData;
       }
     });
   });
@@ -93,7 +100,7 @@ app.post("/", (req, res) => {
         if (err) return res.send(err);
         db.all("SELECT * FROM sensorData", (err, rows) => {
           if (!err) {
-            const latestData = rows.reduce((acc, curr) => {
+            let latestData = rows.reduce((acc, curr) => {
               const key = `${curr.trenchID}_${curr.helmetID}`;
 
               if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
@@ -102,7 +109,14 @@ app.post("/", (req, res) => {
 
               return acc;
             }, {});
-            data = Object.values(latestData);
+            latestData = Object.values(latestData);
+            latestData.sort((a, b) => {
+              if (a.trenchID !== b.trenchID) {
+                return a.trenchID - b.trenchID;
+              }
+              return a.helmetID - b.helmetID;
+            });
+            data = latestData;
             io.emit("updateData", data);
             res.send("1 Row affected");
           }
@@ -117,7 +131,7 @@ app.get("/", (req, res) => {
   db.serialize(() => {
     db.all("SELECT * FROM sensorData", (err, rows) => {
       if (err) return res.send(err);
-      const latestData = rows.reduce((acc, curr) => {
+      let latestData = rows.reduce((acc, curr) => {
         const key = `${curr.trenchID}_${curr.helmetID}`;
 
         if (!acc[key] || acc[key].recievedAt < curr.recievedAt) {
@@ -126,8 +140,14 @@ app.get("/", (req, res) => {
 
         return acc;
       }, {});
-
-      res.send(Object.values(latestData));
+      latestData = Object.values(latestData);
+      latestData.sort((a, b) => {
+        if (a.trenchID !== b.trenchID) {
+          return a.trenchID - b.trenchID;
+        }
+        return a.helmetID - b.helmetID;
+      });
+      res.send(latestData);
     });
   });
 });

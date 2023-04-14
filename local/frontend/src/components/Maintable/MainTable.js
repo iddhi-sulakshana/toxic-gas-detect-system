@@ -1,21 +1,22 @@
 import * as React from "react";
 import Table from "react-bootstrap/Table";
-import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import TableRow from "./TableRow";
 const socket = io("http://localhost:8080");
 
-function DarkExample() {
-  const navigate = useNavigate();
-
-  function handleClick() {
-    navigate("/Miners");
-  }
+function DarkExample(props) {
+  const { setIsConnected } = props;
   const [safe, setSafe] = React.useState([]);
   const [caution, setCaution] = React.useState([]);
   const [danger, setDanger] = React.useState([]);
 
   React.useEffect(() => {
+    socket.on("connect", () => {
+      setIsConnected(true);
+    });
+    socket.on("disconnect", () => {
+      setIsConnected(false);
+    });
     // Fetch the data from the API
     socket.on("updateData", (newData) => {
       const newSafe = [];
@@ -32,7 +33,7 @@ function DarkExample() {
       setCaution(newCaution);
       setDanger(newDanger);
     });
-  }, []);
+  }, [setIsConnected]);
 
   return (
     <Table bordered hover style={{ padding: "20px" }}>
@@ -47,7 +48,6 @@ function DarkExample() {
           <th>LPG (ppm)</th>
           <th>Condition</th>
           <th>Recieved</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -56,7 +56,6 @@ function DarkExample() {
             className="danger"
             key={`${value.trenchID}${value.helmetID}`}
             value={value}
-            handleClick={handleClick}
           />
         ))}
         {caution.map((value, index) => (
@@ -64,7 +63,6 @@ function DarkExample() {
             className="caution"
             key={`${value.trenchID}${value.helmetID}`}
             value={value}
-            handleClick={handleClick}
           />
         ))}
         {safe.map((value, index) => (
@@ -72,7 +70,6 @@ function DarkExample() {
             className="safe"
             key={`${value.trenchID}${value.helmetID}`}
             value={value}
-            handleClick={handleClick}
           />
         ))}
       </tbody>
