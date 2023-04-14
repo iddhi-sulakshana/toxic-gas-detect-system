@@ -1,28 +1,16 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
-const mongoose = require("mongoose");
 const morgan = require("morgan");
 const os = require("os");
 const cors = require("cors");
 const app = express();
 const server = require("http").Server(app);
+const axios = require("axios");
 const io = require("socket.io")(server, {
   cors: { origin: "*" },
 });
-
-// mongodb schema
-const sensorDataSchema = new mongoose.Schema({
-  trenchID: Number,
-  helmetID: Number,
-  O2: String,
-  CO: String,
-  H2S4: String,
-  LPG: String,
-  CH4: String,
-  recievedAt: String,
-  condition: String,
-});
-const SensorData = mongoose.model("Mine1", sensorDataSchema);
+const token =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtaW5lIjoiTWluZTEiLCJpYXQiOjE2ODE0Nzg3ODV9.dWGsGyGE2zyDBENN1KN5AJfFnJOpGV0CuDlVAt_jbxk";
 
 const ipAddresses = [];
 getIpAddresses();
@@ -154,43 +142,34 @@ app.get("/", (req, res) => {
 
 // upload all the data to cloud
 app.get("/upload", (req, res) => {
-  mongoose
-    .connect("mongodb://127.0.0.1:27017/sensorData")
-    .then(async () => {
-      let last = await SensorData.find()
-        .sort({ recievedAt: -1 })
-        .limit(1)
-        .select("recievedAt");
-      if (last.length === 0) last = [{ recievedAt: "0000-00-00 00:00:00" }];
-      db.serialize(() => {
-        db.all(
-          `SELECT * FROM sensorData WHERE recievedAt > "${last[0].recievedAt}"`,
-          async (err, rows) => {
-            if (err) return res.send(err);
-            for (const row of rows) {
-              const sensorData = new SensorData({
-                trenchID: row.trenchID,
-                helmetID: row.helmetID,
-                O2: row.O2,
-                CO: row.CO,
-                H2S4: row.H2S4,
-                LPG: row.LPG,
-                CH4: row.CH4,
-                recievedAt: row.recievedAt,
-                condition: row.condition,
-              });
-              await sensorData.save();
-            }
-            await mongoose.connection.close();
-            res.send("Data uploaded to cloud");
-          }
-        );
+  db.serialize(async () => {
+    let last = await axios
+      .get("http://localhost:4001/last", { headers: { "x-auth-token": token } })
+      .catch((error) => {
+        return { error: true };
       });
-    })
-    .catch((err) => {
-      mongoose.connection.close();
-      res.status(500).send(err);
-    });
+    if (last.error)
+      return res.status(500).send("Error occured while uploading");
+    last = last.data.data;
+    db.all(
+      `SELECT * FROM sensorData WHERE recievedAt > "${last}"`,
+      async (err, rows) => {
+        if (err) return res.send(err);
+        axios
+          .post("http://localhost:4001/upload", rows, {
+            headers: { "x-auth-token": token },
+          })
+          .then(() => {
+            return res.send("Data uploaded to cloud");
+          })
+          .catch((error) =>
+            res
+              .status(error.response.status)
+              .send("Error Occured while uploading")
+          );
+      }
+    );
+  });
 });
 
 // web socket
