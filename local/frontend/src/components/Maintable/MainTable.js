@@ -1,5 +1,5 @@
 import * as React from "react";
-import Table from "react-bootstrap/Table";
+import { Table, Container } from "react-bootstrap";
 import io from "socket.io-client";
 import TableRow from "./TableRow";
 const socket = io("http://localhost:8080");
@@ -36,44 +36,46 @@ function DarkExample(props) {
   }, [setIsConnected]);
 
   return (
-    <Table bordered hover style={{ padding: "20px" }}>
-      <thead>
-        <tr>
-          <th>TrenchID</th>
-          <th>Helmet_id</th>
-          <th>Oxygen Level (%)</th>
-          <th>CO (ppm)</th>
-          <th>H2S4 (ppm)</th>
-          <th>CH4 (ppm)</th>
-          <th>LPG (ppm)</th>
-          <th>Condition</th>
-          <th>Recieved</th>
-        </tr>
-      </thead>
-      <tbody>
-        {danger.map((value, index) => (
-          <TableRow
-            className="danger"
-            key={`${value.trenchID}${value.helmetID}`}
-            value={value}
-          />
-        ))}
-        {caution.map((value, index) => (
-          <TableRow
-            className="caution"
-            key={`${value.trenchID}${value.helmetID}`}
-            value={value}
-          />
-        ))}
-        {safe.map((value, index) => (
-          <TableRow
-            className="safe"
-            key={`${value.trenchID}${value.helmetID}`}
-            value={value}
-          />
-        ))}
-      </tbody>
-    </Table>
+    <Container fluid>
+      <Table bordered hover responsive style={{ padding: "20px" }}>
+        <thead>
+          <tr>
+            <th>TrenchID</th>
+            <th>Helmet_id</th>
+            <th>Condition</th>
+            <th>Oxygen Level (%)</th>
+            <th>CO (ppm)</th>
+            <th>H2S4 (ppm)</th>
+            <th>CH4 (ppm)</th>
+            <th>LPG (ppm)</th>
+            <th>Recieved</th>
+          </tr>
+        </thead>
+        <tbody>
+          {danger.map((value, index) => (
+            <TableRow
+              className="danger"
+              key={`${value.trenchID}${value.helmetID}`}
+              value={value}
+            />
+          ))}
+          {caution.map((value, index) => (
+            <TableRow
+              className="caution"
+              key={`${value.trenchID}${value.helmetID}`}
+              value={value}
+            />
+          ))}
+          {safe.map((value, index) => (
+            <TableRow
+              className="safe"
+              key={`${value.trenchID}${value.helmetID}`}
+              value={value}
+            />
+          ))}
+        </tbody>
+      </Table>
+    </Container>
   );
 }
 

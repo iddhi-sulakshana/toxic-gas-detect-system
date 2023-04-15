@@ -31,9 +31,7 @@ export const Navbar1 = (props) => {
               className="d-inline-block align-top"
               style={{ borderRadius: "50px" }}
             />{" "}
-            <span style={{ fontWeight: "bold", fontSize: "30px" }}>
-              APE StartUp EKApuliye
-            </span>
+            <span style={{ fontWeight: "bold", fontSize: "30px" }}>Mine1</span>
           </Navbar.Brand>
           <Button
             className="fade-in-out"

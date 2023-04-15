@@ -10,7 +10,7 @@ const io = require("socket.io")(server, {
   cors: { origin: "*" },
 });
 const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtaW5lIjoiTWluZTEiLCJpYXQiOjE2ODE0Nzg3ODV9.dWGsGyGE2zyDBENN1KN5AJfFnJOpGV0CuDlVAt_jbxk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFzZEBnbWEuY28iLCJtaW5lIjoiTWluZTEiLCJsb2NhdGlvbiI6IkFudXJhZGhhcHVyYSIsInJvbGUiOiJtaW5lciIsImlhdCI6MTY4MTU4MzMzMX0.jdlSNPKiGvZCaItyN6XId8ccrJy8_Gu-oXCein5t33w";
 
 const ipAddresses = [];
 getIpAddresses();

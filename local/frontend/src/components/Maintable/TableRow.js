@@ -7,12 +7,12 @@ export default function TableRow(props) {
     <tr id={className}>
       <td>{value.trenchID}</td>
       <td>{value.helmetID}</td>
+      <td>{value.condition}</td>
       <td>{value.O2}</td>
       <td>{value.CO}</td>
       <td>{value.H2S4}</td>
       <td>{value.LPG}</td>
       <td>{value.CH4}</td>
-      <td>{value.condition}</td>
       <td>{value.recievedAt}</td>
     </tr>
   );
