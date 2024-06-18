@@ -26,6 +26,25 @@ Mining remains a critical yet hazardous industry, posing significant risks due t
 
 ![Helmet](/screenshots/helmet.png)
 
+## Contributors
+
+This project was developed by:
+
+-   [Iddhi](https://github.com/iddhi-sulakshana)
+-   [Chamodh](https://github.com/chamodhpereira)
+-   [Chanaka](https://github.com/gncranasingha)
+-   [Pramodh](https://github.com/PramodMannapperuma)
+-   [Vihansi](https://github.com/VihansiPerera)
+-   [Buddhima](https://github.com/buddhimac111)
+
+## Contributing
+
+Contributions are welcome! Please submit a pull request or open an issue to discuss any improvements or feature additions.
+
+## Contact
+
+For any inquiries or feedback, please raise an issue on the GitHub repository.
+
 ## Arduino Setup
 
 ### Arduino Components
