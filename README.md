@@ -1,4 +1,4 @@
-# Toxi gas detect system using IOT
+# Toxic gas detect system using IOT
 
 Mining remains a critical yet hazardous industry, posing significant risks due to the presence of toxic gases like CO, CO2, NOx, H2S, CH4, and H2, along with low oxygen levels. Traditional safety measures often fall short in providing timely alerts to miners or real-time data to control centers. This project introduces an advanced IoT-based safety helmet to bridge these gaps, focusing on immediate hazard detection and effective communication with remote monitoring systems.
 
